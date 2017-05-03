@@ -4,190 +4,104 @@
 <head>
     <title>
     </title>
+    <script type="text/javascript" src="gameState.js"></script>
     <style>
-
+    button {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .square {
+        background-color: green;
+        position: relative;
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        margin: 5px;
+    }
+    
+    #board {
+        background-color: white;
+        width: 190px;
+        height: 190px;
+        border: solid;
+    }
     </style>
 </head>
 
 <body>
     <p>If you click the square, I'm X, you're O. If you click the circle, I'm O, you're X.</p>
+    <button id="X">X</button>
+    <button id="O">O</button>
+    <div id="board">
+    </div>
     <script type="text/javascript">
-    var gameState = {
-        player: null,
-        computer: null,
-        grid: null, //info storage about where player has placed Xs, Os (vital stats)
-    }
+    // next thing to do:
+    //make a flowchart that explains what calls what and what creates what etc (esp. between gameState and UI Objects)
+    //   maybe rename gameState? It is more like 'ticTacToeGame' now
+    //Put alert for when no one wins
+    // Put alert when computer wins as opposed to "You win"
+    //   add comments as desired
 
-    function resetGameState() {
-        gameState.player = null;
-        gameState.computer = null;
-        gameState.grid = [];
-        for (var i = 0; i < 9; i++) {
-            gameState.grid.push(null);
-        }
-    }
+    // weird / extra credit stuff (these would be good things to pair on):
+    //   make it possible to have *two* games on one page (the point is to be able to have it as a library)
+    //   learn how to write tests (for example look at Jasmine)
+    //solidify understanding of this game by making Rock, paper, scissors
 
-    var buttonX = document.createElement('button');
-    document.body.appendChild(buttonX);
-    buttonX.style.backgroundColor = "blue";
-    buttonX.style.width = "100px";
-    buttonX.style.height = "100px";
-    buttonX.innerText = "I'm X, you're O!";
+    var gameUI = {
+        board: null,
+        squares: [],
 
-    buttonX.addEventListener("click",
-        function settingXorO(event) {
-            gameState.computer = "X";
-            gameState.player = "O";
-            console.log("computer is X!; player is O;");
-            counter = 0;
-            // alert("I'll go first")
-            gameState.grid[4] = "x";
-            updateGrid();
+        setup: function() {
+            this.board = document.getElementById("board");
 
-        });
+            // setup ui of how you choose which player you are. 
+            document.querySelector('#X').addEventListener("click", function() {
+                gameState.onPlayerSelectX();
+            });
 
-    var buttonO = document.createElement('button');
-    document.body.appendChild(buttonO);
-    buttonO.style.backgroundColor = "red";
-    buttonO.style.width = "100px";
-    buttonO.style.height = "100px";
-    buttonO.style.borderRadius = "50%";
-    buttonO.innerText = "You're X, I'm O!";
+            document.querySelector('#O').addEventListener("click", function() {
+                gameState.onPlayerSelectO();
+            });
 
-    buttonO.addEventListener("click",
-        function settingXorO(event) {
-            gameState.computer = "O";
-            gameState.player = "x"
-            console.log("computer  is O!; player is X");
-            // alert("You go first");
-        });
+            for (var i = 0; i < gameState.grid.length; i++) {
+                this.createSquare(i);
+            };
+        },
 
-    var outline = document.createElement("div");
-    document.body.appendChild(outline);
-    outline.style.backgroundColor = "white";
-    outline.style.width = "190px";
-    outline.style.height = "190px";
-    outline.style.border = "solid";
+        createSquare: function(n) {
+            var square = document.createElement("div");
+            this.board.appendChild(square);
+            square.className = "square";
+            square.id = "square" + n;
 
-    var counter = 0;
+            this.squares.push(square);
 
-    var squares = [];
+            square.addEventListener("click", function() {
+                gameState.onPlayerPlays(n);
 
-    function createTable(n) {
-        var square = document.createElement("div");
-        outline.appendChild(square);
-        square.style.backgroundColor = "green";
-        square.style.position = "relative";
-        square.style.width = "50px";
-        square.style.height = "50px";
-        square.style.display = "inline-block";
-        square.style.marginRight = "10px";
-        square.style.marginBottom = "10px";
+            });
+        },
 
-        square.id = "square" + n;
 
-        squares.push(square);
 
-        square.addEventListener("click", function() {
-            gameState.grid[n] = gameState.player;
+        update: function() {
+            gameState.grid.forEach(function(gridElementValue, index) {
+                var text = gridElementValue;
+                if (gridElementValue === null) {
+                    text = "&nbsp;";
+                }
 
-            console.log("I'm " + gameState.player);
-
-            updateGrid();
-            detectWinCondition();
-            computerPlay();
-
-        });
+                // set the text in the square displayed the user 
+                this.squares[index].innerHTML = text;
+            }, this);
+        },
     };
-
 
     // show the game board
-    resetGameState()
-    for (var i = 0; i < gameState.grid.length; i++) {
-        createTable(i);
-    };
-    updateGrid();
-
-
-    var winLines = [
-        // rows
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-
-        // columns
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-
-        // digagonals
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-
-    // Find the square that are not null. iterate over the grid. Find all of the rows, columns, and diagonals that that square is in. Put an X or O in that row.
-
-    function detectWinCondition() {
-        winLines.forEach(function(winLine) {
-            if (gameState.grid[winLine[0]] != null && gameState.grid[winLine[0]] == gameState.grid[winLine[1]] && gameState.grid[winLine[0]] == gameState.grid[winLine[2]]) {
-                alert("Three in a row! You win!")
-            }
-        });
-    };
-
-    function updateGrid() {
-        gameState.grid.forEach(function(gridElementValue, index) {
-            var text = gridElementValue;
-            if (gridElementValue === null) {
-                text = "&nbsp;";
-            }
-
-            // set the text in the square displayed the user 
-            squares[index].innerHTML = text;
-        });
-    }
-
-
-    function computerPlay() {
-        var hasComputerPlayed = false;
-
-        var nullIndices = [];
-
-
-        gameState.grid.forEach(function chooseOne(gridElementValue, index) {
-            if (gridElementValue === null) {
-                nullIndices.push(index);
-            };
-        });
-
-        var computerChoice = nullIndices[0];
-
-
-        gameState.grid[computerChoice] = gameState.computer;
-
-
-
-
-        hasComputerPlayed = true;
-        updateGrid()
-    };
-
-
-
-
-    // gameState.grid.forEach(function(gridElementValue, index) {
-    //     if (gridElementValue === null) {
-    //         gameState.grid[index]= gameState.computer;
-    //         hasComputerPlayed = true;
-    //     }
-    // });
-
-
-
-    // if (gridElementValue[0] = "x" || gridElementValue[0] = "o" &&
-    //     gridElementValue[0] == gridElementValue[1]) {
-    //     console.log(gridElementValue)
-    // };
+    gameState.reset();
+    gameUI.setup();
+    gameUI.update();
     </script>
 </body>
 
